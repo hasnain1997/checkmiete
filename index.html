@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="CheckMiete.de — Check if your Munich or Berlin rent is fair. Based on official Mietspiegel 2025 data. Free, instant, legally binding.">
+<meta property="og:title" content="CheckMiete.de — Is your rent fair?">
+<meta property="og:description" content="Check your rent against official German Mietspiegel data in 30 seconds. Free. No signup.">
+<title>CheckMiete.de — Is your rent fair?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">check<span>miete</span>.de</div>
+  <div class="badge">Free · Official Data</div>
+</header>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-label">Rent Fairness Tool</div>
+  <h1>Is your German rent <em>fair?</em></h1>
+  <p>Check against official Mietspiegel data — the same numbers courts use in rent disputes.</p>
+
+  <div class="city-switcher">
+    <button class="city-tab active" id="tab-munich" onclick="setCity('munich')">
+      <span class="flag">🏔️</span>
+      <span class="city-detail">
+        <span class="city-name">Munich</span>
+        <span class="city-data">Mietspiegel 2025</span>
+      </span>
+    </button>
+    <button class="city-tab" id="tab-berlin" onclick="setCity('berlin')">
+      <span class="flag">🏛️</span>
+      <span class="city-detail">
+        <span class="city-name">Berlin</span>
+        <span class="city-data">Mietspiegel 2023</span>
+      </span>
+    </button>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat"><strong id="stat-avg">€15.38</strong><span>avg legal rent/m²</span></div>
+    <div class="hero-stat"><strong id="stat-units">500K+</strong><span>apartments covered</span></div>
+    <div class="hero-stat"><strong id="stat-contracts">3,214</strong><span>real contracts analyzed</span></div>
+  </div>
+</div>
+
+<!-- Main Tool -->
+<div class="main">
+  <div class="form-card">
+
+    <!-- FORM -->
+    <div id="form-wrapper">
+      <div class="form-header">
+        <h2>Calculate your fair rent</h2>
+        <div class="step-dots">
+          <div class="dot active" id="dot-1"></div>
+          <div class="dot" id="dot-2"></div>
+          <div class="dot" id="dot-3"></div>
+          <div class="dot" id="dot-4"></div>
+        </div>
+      </div>
+
+      <div class="form-body">
+
+        <!-- Step 1 -->
+        <div class="step visible" id="step-1">
+          <div class="step-title">Your apartment</div>
+          <div class="step-sub">Size, age and location determine your base rent</div>
+          <div class="field">
+            <label>Apartment size</label>
+            <div class="range-val"><span id="size-display">60</span> <span>m²</span></div>
+            <input type="range" id="size-range" min="20" max="160" value="60" step="2" oninput="updateRange(this,'size-display')">
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Year built</label>
+              <select id="build-year"></select>
+            </div>
+            <div class="field">
+              <label>Location quality</label>
+              <select id="location"></select>
+            </div>
+          </div>
+          <div id="berlin-location-note" class="info-note" style="display:none">
+            <strong>Berlin note:</strong> Location (einfach/mittel/gut) is based on your street address. Check the official <a href="https://mietspiegel.berlin.de" target="_blank">Straßenverzeichnis</a> for your exact address.
+          </div>
+          <div class="form-nav">
+            <div></div>
+            <button class="btn-next" onclick="goStep(2)">Next: Building type →</button>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step" id="step-2">
+          <div class="step-title">Building type</div>
+          <div class="step-sub">Select what best describes your building</div>
+
+          <div id="munich-step2">
+            <div class="field">
+              <label>Building structure</label>
+              <div class="chips" id="chips-building">
+                <div class="chip selected" data-val="0" onclick="selectChip(this,'chips-building')">Normal building</div>
+                <div class="chip" data-val="-0.96" onclick="selectChip(this,'chips-building')">High-rise (6+ floors, pre-1999)</div>
+                <div class="chip" data-val="-1.13" onclick="selectChip(this,'chips-building')">Wohnblock (block with garden)</div>
+              </div>
+            </div>
+            <div class="field" id="altbau-field" style="display:none">
+              <label>Old building type (pre-1949)</label>
+              <div class="chips" id="chips-altbau">
+                <div class="chip" data-val="-2.58" onclick="selectChip(this,'chips-altbau')">Very simple Altbau</div>
+                <div class="chip" data-val="-1.21" onclick="selectChip(this,'chips-altbau')">Simple Altbau</div>
+                <div class="chip selected" data-val="0" onclick="selectChip(this,'chips-altbau')">Standard Altbau</div>
+                <div class="chip" data-val="0.36" onclick="selectChip(this,'chips-altbau')">Good Altbau (stucco / high ceilings)</div>
+              </div>
+            </div>
+            <div class="field" id="nachkrieg-field" style="display:none">
+              <label>Post-war building (1949–1977)</label>
+              <div class="chips" id="chips-nachkrieg">
+                <div class="chip selected" data-val="0" onclick="selectChip(this,'chips-nachkrieg')">Standard (other type)</div>
+                <div class="chip" data-val="-1.14" onclick="selectChip(this,'chips-nachkrieg')">Simple Nachkriegsbau (partial attic)</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="berlin-step2" style="display:none">
+            <div class="info-note">
+              <strong>Berlin system:</strong> The Berliner Mietspiegel uses a grid table based on size, year and location. Standard equipment (central heating + bath + WC) is assumed — apply deductions below only if missing.
+            </div>
+            <div class="field">
+              <label>Equipment deductions (if applicable)</label>
+              <div class="chips" id="chips-berlin-equip">
+                <div class="chip selected" data-val="0" onclick="selectChip(this,'chips-berlin-equip')">Full standard (SH + Bad + IWC)</div>
+                <div class="chip" data-val="-1.51" onclick="selectChip(this,'chips-berlin-equip')">Pre-1918: heating OR bath only</div>
+                <div class="chip" data-val="-2.34" onclick="selectChip(this,'chips-berlin-equip')">Pre-1949: no heating, no bath</div>
+                <div class="chip" data-val="-1.55" onclick="selectChip(this,'chips-berlin-equip')">1950–64: heating OR bath only</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-nav">
+            <button class="btn-back" onclick="goStep(1)">← Back</button>
+            <button class="btn-next" onclick="goStep(3)">Next: Features →</button>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step" id="step-3">
+          <div class="step-title">Apartment features</div>
+          <div class="step-sub">Select everything that applies to your apartment</div>
+
+          <div id="munich-step3">
+            <div class="field">
+              <label>Heating</label>
+              <div class="chips" id="chips-heat">
+                <div class="chip selected" data-val="0" onclick="selectChip(this,'chips-heat')">Standard heating</div>
+                <div class="chip" data-val="-2.21" onclick="selectChip(this,'chips-heat')">Incomplete heating</div>
+                <div class="chip" data-val="1.0" onclick="selectChip(this,'chips-heat')">Underfloor heating (pre-1999)</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Bathroom <span class="label-note">(select all that apply)</span></label>
+              <div class="chips" id="chips-bath">
+                <div class="chip" data-val="0.62" onclick="toggleChip(this)">Extra shower + 2nd basin / bidet</div>
+                <div class="chip" data-val="0.62" onclick="toggleChip(this)">Towel radiator</div>
+                <div class="chip" data-val="0.62" onclick="toggleChip(this)">Walk-in shower</div>
+                <div class="chip" data-val="0.62" onclick="toggleChip(this)">Bath ≥ 6m² or 2nd bathroom</div>
+                <div class="chip" data-val="0.62" onclick="toggleChip(this)">Renovated bath (post-2019)</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Kitchen <span class="label-note">(select all that apply)</span></label>
+              <div class="chips" id="chips-kitchen">
+                <div class="chip" data-val="0.55" onclick="toggleChip(this)">Open kitchen</div>
+                <div class="chip" data-val="0.53" onclick="toggleChip(this)">Ceran / induction hob</div>
+                <div class="chip" data-val="0.53" onclick="toggleChip(this)">Fridge included</div>
+                <div class="chip" data-val="0.53" onclick="toggleChip(this)">Dishwasher</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Floor quality</label>
+              <div class="chips" id="chips-floor">
+                <div class="chip selected" data-val="0" onclick="selectChip(this,'chips-floor')">Standard floor</div>
+                <div class="chip" data-val="-1.54" onclick="selectChip(this,'chips-floor')">No floor covering</div>
+                <div class="chip" data-val="-1.12" onclick="selectChip(this,'chips-floor')">Simple (carpet / PVC)</div>
+                <div class="chip" data-val="1.37" onclick="selectChip(this,'chips-floor')">Good (parquet / stone)</div>
+              </div>
+              <div class="chips" style="margin-top:8px">
+                <div class="chip" data-val="1.86" onclick="toggleChip(this)">Renovated floor (post-2019)</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Other <span class="label-note">(select all that apply)</span></label>
+              <div class="chips" id="chips-other">
+                <div class="chip" data-val="0.55" onclick="toggleChip(this)">Balcony / terrace (pre-1999 building)</div>
+                <div class="chip" data-val="0.77" onclick="toggleChip(this)">Electric blinds or video intercom</div>
+                <div class="chip" data-val="2.10" onclick="toggleChip(this)">New windows (pre-1949, post-1995)</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="berlin-step3" style="display:none">
+            <div class="info-note">
+              <strong>Berlin:</strong> The official table gives a median and span (lower/upper third). Use the span position to reflect your apartment's condition relative to similar apartments.
+            </div>
+            <div class="field">
+              <label>Condition relative to similar apartments</label>
+              <div class="chips" id="chips-berlin-span">
+                <div class="chip" data-val="-1" onclick="selectChip(this,'chips-berlin-span')">Below average — lower span</div>
+                <div class="chip selected" data-val="0" onclick="selectChip(this,'chips-berlin-span')">Average — median value</div>
+                <div class="chip" data-val="1" onclick="selectChip(this,'chips-berlin-span')">Above average — upper span</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-nav">
+            <button class="btn-back" onclick="goStep(2)">← Back</button>
+            <button class="btn-next" onclick="goStep(4)">Next: Your rent →</button>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step" id="step-4">
+          <div class="step-title">What do you pay?</div>
+          <div class="step-sub">Enter your monthly <strong>Nettokaltmiete</strong> — cold rent without heating or utilities</div>
+          <div class="field">
+            <label>Monthly net cold rent</label>
+            <div class="rent-input-wrap">
+              <span class="rent-currency">€</span>
+              <input type="number" id="rent-input" placeholder="e.g. 1200" min="100" max="9999">
+            </div>
+          </div>
+          <div class="field">
+            <label>Your district <span class="label-note">(optional)</span></label>
+            <select id="district-select">
+              <option value="">Select district...</option>
+            </select>
+          </div>
+          <div class="form-nav">
+            <button class="btn-back" onclick="goStep(3)">← Back</button>
+            <button class="btn-next btn-green" onclick="calculate()">✓ Check my rent</button>
+          </div>
+        </div>
+
+      </div><!-- /form-body -->
+    </div><!-- /form-wrapper -->
+
+    <!-- RESULTS -->
+    <div id="results" style="display:none">
+      <div class="result-hero">
+        <div class="verdict">
+          <div class="verdict-icon" id="verdict-icon"></div>
+          <div class="verdict-text">
+            <h2 id="verdict-title"></h2>
+            <p id="verdict-sub"></p>
+          </div>
+        </div>
+        <div class="meter-wrap">
+          <div class="meter-label">
+            <span>Legal minimum</span>
+            <span>Your rent</span>
+            <span>Market max</span>
+          </div>
+          <div class="meter-track">
+            <div class="meter-fill" id="meter-fill" style="width:0%"></div>
+            <div class="meter-marker" id="meter-marker" style="left:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="numbers-grid">
+        <div class="number-box"><div class="val" id="res-fair">—</div><div class="lbl">Legal fair rent/m²</div></div>
+        <div class="number-box highlight"><div class="val" id="res-yours">—</div><div class="lbl">Your rent/m²</div></div>
+        <div class="number-box"><div class="val" id="res-diff">—</div><div class="lbl">Monthly difference</div></div>
+      </div>
+
+      <div class="breakdown">
+        <h3>How your fair rent is calculated</h3>
+        <div class="breakdown-row"><span class="bkey">Base price (size × year built)</span><span class="bval" id="br-base">—</span></div>
+        <div class="breakdown-row"><span class="bkey" id="br-loc-lbl">Location surcharge</span><span class="bval" id="br-loc">—</span></div>
+        <div class="breakdown-row"><span class="bkey" id="br-equip-lbl">Equipment adjustments</span><span class="bval" id="br-equip">—</span></div>
+        <div class="breakdown-row total-row">
+          <span class="bkey">Fair rent/m² (Mietspiegel)</span>
+          <span class="bval" id="br-total">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="bkey">× Apartment size</span>
+          <span class="bval" id="br-monthly">—</span>
+        </div>
+      </div>
+
+      <div class="result-info-box" id="result-info-box"></div>
+
+      <div class="rights">
+        <h3>Your rights</h3>
+        <div class="right-item">
+          <div class="right-icon">⚖️</div>
+          <div class="right-text"><strong>Mietpreisbremse applies</strong><span>New rental contracts cannot exceed 10% above the Mietspiegel value.</span></div>
+        </div>
+        <div class="right-item">
+          <div class="right-icon">📈</div>
+          <div class="right-text"><strong>Rent increase cap: 15% in 3 years</strong><span>Both Munich and Berlin apply a stricter cap than the national 20% rule.</span></div>
+        </div>
+        <div class="right-item">
+          <div class="right-icon">📋</div>
+          <div class="right-text"><strong>Landlord must justify increases</strong><span>Any rent increase must reference the Mietspiegel in writing.</span></div>
+        </div>
+        <div class="right-item" id="right-contact">
+          <div class="right-icon">🏛️</div>
+          <div class="right-text"><strong>Free advice — Munich</strong><span>Amt für Wohnen und Migration · Franziskanerstraße 8 · 089 233-40200</span></div>
+        </div>
+      </div>
+
+      <button class="btn-reset" onclick="resetForm()">← Check another apartment</button>
+    </div><!-- /results -->
+
+  </div><!-- /form-card -->
+
+  <div class="source-note">
+    <strong>✓ Legally binding official data</strong><br>
+    Munich: Mietspiegel für München 2025 — approved by Munich City Council, 26 March 2025 — 3,214 real contracts<br>
+    Berlin: Berliner Mietspiegel 2023 — published by Senate for Urban Development, June 2023<br>
+    checkmiete.de is independent and not affiliated with any city authority.
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
